@@ -31,11 +31,11 @@ void Update()
         float alturaOla = scriptAgua.waveHeight * Mathf.Sin(Time.time * Mathf.PI * 2.0f * scriptAgua.waveFrequency 
             + (Mathf.PI * 2.0f * distanciaCalculada));
 
-        // 🌟 AQUÍ ESTÁ EL CAMBIO: Restamos alturaOla en vez de sumarla para invertir el sentido
+       
         float yFinal = scriptAgua.transform.position.y - alturaOla + desfaseAltura;
         transform.position = new Vector3(posBarco.x, yFinal, posBarco.z);
 
-        // 2. Balanceo estético corregido también para que vaya a favor de la ola
+        
         float balanceo = Mathf.Sin(Time.time * scriptAgua.waveFrequency * 3f) * (scriptAgua.waveHeight * 10f);
         Quaternion rotacionBalanceo = Quaternion.Euler(-balanceo * 0.3f, 0f, -balanceo);
 
