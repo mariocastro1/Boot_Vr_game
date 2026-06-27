@@ -18,10 +18,10 @@ public class MovimientoCamara : MonoBehaviour
     public float fuerzaSalto = 4.0f; 
 
     [Header("Configuración de Agacharse")]
-    public float velocidadAgachado = 1.5f; // Velocidad reducida al caminar agachado
+    public float velocidadAgachado = 1.5f; 
 
     [Header("Sincronización con el Barco")]
-    public Transform objetoBarco; // 🌟 ARRASTRA AQUÍ TU OBJETO "boot" DESDE EL INSPECTOR
+    public Transform objetoBarco; // Tu objeto base del barco ("Base_barco" o "boot")
 
     private CharacterController controller;
     private float rotacionX = 0;
@@ -29,108 +29,99 @@ public class MovimientoCamara : MonoBehaviour
     private bool juegoCongelado = false;
     private float velocidadVertical = 0f; 
 
-    // Guardar las alturas originales para poder volver a ellas al soltar la tecla
     private float alturaOriginalCuerpo = 5.0f;
     private float alturaOriginalCamaraY = 0f;
     private bool estaAgachado = false;
 
-    // Variables internas para rastrear el movimiento del barco
-    private Vector3 ultimaPosicionBarco;
+    // Variables internas para controlar si estamos sobre el barco
+    private bool sobreElBarco = false;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
         
-        // Mantenemos tus valores de altura estables que ya te funcionan bien
-        controller.height = 5.0f;
-        controller.center = Vector3.zero;
+        controller.height = 5.0f; 
+        controller.center = Vector3.zero; 
         alturaOriginalCuerpo = controller.height;
 
-        Cursor.lockState = CursorLockMode.Locked;
+        Physics.queriesHitTriggers = false; 
+
+        Cursor.lockState = CursorLockMode.Locked; 
         
-        rotacionY = transform.localRotation.eulerAngles.y;
-        rotacionX = transform.localRotation.eulerAngles.x;
+        rotacionY = transform.localRotation.eulerAngles.y; 
+        rotacionX = transform.localRotation.eulerAngles.x; 
 
-        // Recordar la posición Y inicial que tiene tu cámara hija en el Inspector
-        if (transform.childCount > 0)
+        if (transform.childCount > 0) 
         {
-            alturaOriginalCamaraY = transform.GetChild(0).localPosition.y;
-        }
-
-        // Inicializamos la posición del barco si ya está asignado
-        if (objetoBarco != null)
-        {
-            ultimaPosicionBarco = objetoBarco.position;
+            alturaOriginalCamaraY = transform.GetChild(0).localPosition.y; 
         }
     }
 
-    // 🌟 Se ejecuta en LateUpdate para que vaya DESPUÉS de que el barco se mueva con el agua
-    void LateUpdate()
+    void Update()
     {
-        // 1. ALTERNAR MODO (Tecla º)
-        if (Keyboard.current != null && Keyboard.current.backslashKey.wasPressedThisFrame)
+        // Alternar modo de cámara (Tecla º)
+        if (Keyboard.current != null && Keyboard.current.backslashKey.wasPressedThisFrame) 
         {
-            modoActual = (modoActual == ModoCamara.Persona) ? ModoCamara.NoClip : ModoCamara.Persona;
-            if (modoActual == ModoCamara.NoClip)
+            modoActual = (modoActual == ModoCamara.Persona) ? ModoCamara.NoClip : ModoCamara.Persona; 
+            if (modoActual == ModoCamara.NoClip) 
             {
-                velocidadVertical = 0f;
-                // Si pasamos a NoClip, nos aseguramos de que el cuerpo recupere su altura normal
+                velocidadVertical = 0f; 
                 RestaurarAlturaNormal();
-            }
-            Debug.Log($"[Cámara] Modo cambiado a: {modoActual}");
-        }
-
-        // Alternar el estado de congelación al pulsar Escape
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            juegoCongelado = !juegoCongelado;
-            Cursor.lockState = juegoCongelado ? CursorLockMode.None : CursorLockMode.Locked;
-        }
-
-        if (juegoCongelado) return;
-
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            juegoCongelado = false;
-        }
-
-        // 2. ROTACIÓN DEL RATÓN
-        if (Mouse.current != null && Cursor.lockState == CursorLockMode.Locked)
-        {
-            Vector2 deltaRaton = Mouse.current.delta.ReadValue();
-            float ratonX = deltaRaton.x * sensibilidadRaton * 0.01f;
-            float ratonY = deltaRaton.y * sensibilidadRaton * 0.01f;
-
-            rotacionY += ratonX;
-            rotacionX -= ratonY;
-            rotacionX = Mathf.Clamp(rotacionX, -90f, 90f);
-
-            // El objeto principal (Jugador_Fisico) solo gira hacia los lados (Y)
-            transform.localRotation = Quaternion.Euler(0, rotacionY, 0); 
-            
-            // La cámara real (que es el primer hijo) mira hacia arriba y abajo (X)
-            if (transform.childCount > 0)
-            {
-                transform.GetChild(0).localRotation = Quaternion.Euler(rotacionX, 0, 0); 
+                transform.SetParent(null); // En NoClip nos desvinculamos de las coordenadas del barco
             }
         }
 
-        // 3. MOVIMIENTO SEGÚN EL MODO ACTIVO
-        if (modoActual == ModoCamara.Persona)
+        // Alternar pausa (Escape)
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) 
         {
-            ManejarAgachado(); // Gestiona el tamaño físico antes de desplazar al personaje
-            ManejarModoPersona();
+            juegoCongelado = !juegoCongelado; 
+            Cursor.lockState = juegoCongelado ? CursorLockMode.None : CursorLockMode.Locked; 
+        }
+
+        if (juegoCongelado) return; 
+
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) 
+        {
+            Cursor.lockState = CursorLockMode.Locked; 
+            juegoCongelado = false; 
+        }
+
+        // PROCESAR MOVIMIENTO DEL JUGADOR
+        if (modoActual == ModoCamara.Persona) 
+        {
+            ManejarAgachado(); 
+            ManejarModoPersona(); 
         }
         else
         {
-            ManejarModoNoClip();
+            ManejarModoNoClip(); 
         }
+    }
 
-        // 🌟 Guardamos la posición que ha tomado el barco al final de este fotograma
-        if (objetoBarco != null)
+void LateUpdate()
+    {
+        if (juegoCongelado) return;
+
+        // ROTACIÓN DEL RATÓN CORREGIDA (Evita heredar los 90º del eje del barco)
+        if (Mouse.current != null && Cursor.lockState == CursorLockMode.Locked) 
         {
-            ultimaPosicionBarco = objetoBarco.position;
+            Vector2 deltaRaton = Mouse.current.delta.ReadValue(); 
+            float ratonX = deltaRaton.x * sensibilidadRaton * 0.01f; 
+            float ratonY = deltaRaton.y * sensibilidadRaton * 0.01f; 
+
+            rotacionY += ratonX; 
+            rotacionX -= ratonY; 
+            rotacionX = Mathf.Clamp(rotacionX, -90f, 90f); 
+
+            // 🌟 LA CORRECCIÓN MAESTRA: Aplica la rotación absoluta en el mundo real.
+            // Esto ignora por completo si el objeto 'boot' o 'Base_barco' está girado en el editor.
+            transform.rotation = Quaternion.Euler(0, rotacionY, 0);  
+            
+            // Rotación vertical de la mirada (Cámara hija)
+            if (transform.childCount > 0) 
+            {
+                transform.GetChild(0).localRotation = Quaternion.Euler(rotacionX, 0, 0);  
+            }
         }
     }
 
@@ -138,16 +129,13 @@ public class MovimientoCamara : MonoBehaviour
     {
         if (Keyboard.current == null) return;
 
-        // Si se mantiene pulsado el Control Izquierdo, nos agachamos
         if (Keyboard.current.leftCtrlKey.isPressed)
         {
             if (!estaAgachado)
             {
                 estaAgachado = true;
-                // Reducimos el CharacterController a la mitad de su altura original
                 controller.height = alturaOriginalCuerpo * 0.5f;
                 
-                // Bajamos la vista de la cámara a la mitad de su altura local relativa
                 if (transform.childCount > 0)
                 {
                     Transform camara = transform.GetChild(0);
@@ -157,7 +145,6 @@ public class MovimientoCamara : MonoBehaviour
         }
         else
         {
-            // Al soltar la tecla, volvemos al estado normal
             if (estaAgachado)
             {
                 RestaurarAlturaNormal();
@@ -179,89 +166,114 @@ public class MovimientoCamara : MonoBehaviour
 
     void ManejarModoPersona()
     {
-        Vector3 movimientoFinal = Vector3.zero;
+        Vector3 movimientoFinal = Vector3.zero; 
 
-        // 🌟 A) Calcular cuánto se ha desplazado el barco en este fotograma debido a las olas
-        if (objetoBarco != null)
+        // Input de caminar (Movimiento relativo a la orientación actual)
+        Vector3 direccionInput = Vector3.zero; 
+
+        if (Keyboard.current != null) 
         {
-            Vector3 desplazamientoBarco = objetoBarco.position - ultimaPosicionBarco;
-            movimientoFinal += desplazamientoBarco; // Añadimos el empuje del barco al movimiento de la cámara
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) direccionInput += transform.forward; 
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) direccionInput -= transform.forward; 
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) direccionInput -= transform.right; 
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) direccionInput += transform.right; 
         }
 
-        // B) Input del jugador (Caminar)
-        Vector3 direccionInput = Vector3.zero;
+        direccionInput.y = 0;  
 
-        if (Keyboard.current != null)
-        {
-            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) direccionInput += transform.forward;
-            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) direccionInput -= transform.forward;
-            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) direccionInput -= transform.right;
-            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) direccionInput += transform.right;
-        }
-
-        direccionInput.y = 0; 
-
-        // Modificador de velocidad: si estás agachado vas lento, si estás de pie y pulsas Shift vas con turbo
-        float velocidadActual = velocidadCaminar;
+        float velocidadActual = velocidadCaminar; 
         if (estaAgachado)
         {
             velocidadActual = velocidadAgachado;
         }
-        else if (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed)
+        else if (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed) 
         {
-            velocidadActual *= 3.0f; 
+            velocidadActual *= 3.0f;  
         }
 
-        direccionInput = direccionInput.normalized * velocidadActual * Time.deltaTime;
-        movimientoFinal += direccionInput; // Sumamos tu velocidad al caminar
+        direccionInput = direccionInput.normalized * velocidadActual * Time.deltaTime; 
+        movimientoFinal += direccionInput; 
 
-        // C) Físicas, Gravedad y Salto
-        if (controller.isGrounded)
+        // GESTIÓN DE FÍSICAS VERTICALES, GRAVEDAD Y SALTO
+        if (controller.isGrounded) 
         {
-            velocidadVertical = -0.5f;
+            velocidadVertical = -1.5f; // Fuerza constante hacia abajo para mantener el contacto firme con el suelo
 
-            // Bloqueamos el salto si estás agachado por realismo técnico
-            if (Keyboard.current != null && Keyboard.current.spaceKey.isPressed && !estaAgachado)
+            if (Keyboard.current != null && Keyboard.current.spaceKey.isPressed && !estaAgachado) 
             {
-                velocidadVertical = fuerzaSalto;
+                // Al saltar, nos desvinculamos inmediatamente del padre para volar libremente por el aire
+                transform.SetParent(null);
+                velocidadVertical = fuerzaSalto; 
             }
         }
-        else
+        else 
         {
-            velocidadVertical -= gravedad * Time.deltaTime;
+            velocidadVertical -= gravedad * Time.deltaTime; 
+            
+            // Si caemos o estamos en el aire por cualquier motivo, aseguramos que no tenemos padre
+            if (transform.parent != null)
+            {
+                transform.SetParent(null);
+            }
         }
 
-        movimientoFinal.y += velocidadVertical * Time.deltaTime;
+        movimientoFinal.y += velocidadVertical * Time.deltaTime; 
 
-        // Aplicamos el movimiento total acumulado (Empuje de olas + Tu movimiento + Gravedad)
-        controller.Move(movimientoFinal);
+        // Aplicamos nuestro movimiento e inputs nativos
+        controller.Move(movimientoFinal); 
     }
 
     void ManejarModoNoClip()
     {
-        Vector3 direccion = Vector3.zero;
+        Vector3 direccion = Vector3.zero; 
 
-        if (Keyboard.current != null)
+        if (Keyboard.current != null) 
         {
-            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) direccion += transform.forward;
-            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) direccion -= transform.forward;
-            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) direccion -= transform.right;
-            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) direccion += transform.right;
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) direccion += transform.forward; 
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) direccion -= transform.forward; 
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) direccion -= transform.right; 
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) direccion += transform.right; 
 
-            direccion.y = 0;
+            direccion.y = 0; 
 
-            if (Keyboard.current.spaceKey.isPressed) direccion += Vector3.up;
-            if (Keyboard.current.leftCtrlKey.isPressed) direccion += Vector3.down; // Sigue bajando el NoClip con normalidad
+            if (Keyboard.current.spaceKey.isPressed) direccion += Vector3.up; 
+            if (Keyboard.current.leftCtrlKey.isPressed) direccion += Vector3.down; 
         }
 
-        // Multiplicador Shift (Turbo)
-        float velocidadActual = velocidadNoClip;
-        if (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed)
+        float velocidadActual = velocidadNoClip; 
+        if (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed) 
         {
-            velocidadActual *= 3.0f; 
+            velocidadActual *= 3.0f;  
         }
 
-        // En NoClip se ignora por completo el desplazamiento del barco
-        transform.position += direccion.normalized * velocidadActual * Time.deltaTime;
+        transform.position += direccion.normalized * velocidadActual * Time.deltaTime; 
+    }
+
+    // 🌟 REGLA DE ORO: DETECCIÓN DE CONTACTO DIRECTO CON EL SUELO DEL BARCO
+    // Esta función interna de Unity se dispara automáticamente cuando el CharacterController colisiona con algo
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        // Comprobamos si estamos en Modo Persona y si el objeto que pisamos está por debajo de nosotros (el suelo)
+        if (modoActual == ModoCamara.Persona && hit.normal.y > 0.6f)
+        {
+            // Verificamos si lo que estamos pisando es el barco o cualquier parte dentro de su estructura física
+            if (hit.transform == objetoBarco || hit.transform.IsChildOf(objetoBarco))
+            {
+                // Si aún no somos hijos, nos emparentamos directamente con el barco
+                if (transform.parent != hit.transform)
+                {
+                    // Al poner el transform del golpe como padre, heredamos sus coordenadas globales de posición y rotación exactas
+                    transform.SetParent(objetoBarco);
+                }
+            }
+            else
+            {
+                // Si pisamos tierra firme u otro objeto fuera del barco, nos desvinculamos
+                if (transform.parent != null)
+                {
+                    transform.SetParent(null);
+                }
+            }
+        }
     }
 }
