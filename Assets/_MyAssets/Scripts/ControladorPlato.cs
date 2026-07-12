@@ -9,13 +9,11 @@ public class ControladorPlato : MonoBehaviour
     private GameObject lechuga;
     private GameObject panArriba;
 
-    // Control del orden: 
-    // 0=Vacío, 1=PanBajo, 2=Carne, 3=Queso, 4=Tomate, 5=Lechuga, 6=PanArriba
-    private int faseActual = 0; 
+    private bool yaTieneBase = false; 
 
     void Start()
     {
-        // Búsqueda automática dentro del propio plato
+        // Búsqueda automática dentro de tu objeto "completa"
         Transform completa = transform.Find("completa");
 
         if (completa != null)
@@ -35,7 +33,7 @@ public class ControladorPlato : MonoBehaviour
             if (tPanArriba != null) panArriba = tPanArriba.gameObject;
         }
 
-        // Ocultamos todo al empezar la partida
+        // Ocultamos todo al empezar el juego
         OcultarObjeto(panBajo);
         OcultarObjeto(carne);
         OcultarObjeto(queso);
@@ -48,50 +46,68 @@ public class ControladorPlato : MonoBehaviour
     {
         string nombreMinusculas = nombreObjeto.ToLower();
 
-        // 1. PRIMER PAN: Si la hamburguesa está vacía (fase 0) y detecta "pan", activa la base
-        if (faseActual == 0 && nombreMinusculas.Contains("pan"))
+        // --- CARNE ---
+        if (nombreMinusculas.Contains("carne"))
         {
-            MostrarObjeto(panBajo);
-            faseActual = 1;
-            return true;
-        }
-        // 2. Esperamos la carne
-        if (faseActual == 1 && nombreMinusculas.Contains("carne"))
-        {
-            MostrarObjeto(carne);
-            faseActual = 2;
-            return true;
-        }
-        // 3. Esperamos el queso
-        if (faseActual == 2 && nombreMinusculas.Contains("queso"))
-        {
-            MostrarObjeto(queso);
-            faseActual = 3;
-            return true;
-        }
-        // 4. Esperamos el tomate
-        if (faseActual == 3 && nombreMinusculas.Contains("tomate"))
-        {
-            MostrarObjeto(tomate);
-            faseActual = 4;
-            return true;
-        }
-        // 5. Esperamos la lechuga
-        if (faseActual == 4 && nombreMinusculas.Contains("lechuga"))
-        {
-            MostrarObjeto(lechuga);
-            faseActual = 5;
-            return true;
-        }
-        // 6. SEGUNDO PAN: Si ya pusimos la lechuga (fase 5) y vuelves a tirar un "pan", activa la tapa
-        if (faseActual == 5 && nombreMinusculas.Contains("pan"))
-        {
-            MostrarObjeto(panArriba);
-            faseActual = 6;
-            return true;
+            if (carne != null && !carne.activeSelf)
+            {
+                MostrarObjeto(carne);
+            }
+            return true; // Se destruye el clon de la mesa siempre (esté puesto o no)
         }
 
-        return false; 
+        // --- QUESO ---
+        if (nombreMinusculas.Contains("queso"))
+        {
+            if (queso != null && !queso.activeSelf)
+            {
+                MostrarObjeto(queso);
+            }
+            return true; // Se destruye siempre
+        }
+
+        // --- TOMATE ---
+        if (nombreMinusculas.Contains("tomate"))
+        {
+            if (tomate != null && !tomate.activeSelf)
+            {
+                MostrarObjeto(tomate);
+            }
+            return true; // Se destruye siempre
+        }
+
+        // --- LECHUGA ---
+        if (nombreMinusculas.Contains("lechuga"))
+        {
+            if (lechuga != null && !lechuga.activeSelf)
+            {
+                MostrarObjeto(lechuga);
+            }
+            return true; // Se destruye siempre
+        }
+
+        // --- PANES (LÓGICA ESPECIAL) ---
+        if (nombreMinusculas.Contains("pan"))
+        {
+            // Si no hay base, activamos la base
+            if (!yaTieneBase && panBajo != null)
+            {
+                if (!panBajo.activeSelf) MostrarObjeto(panBajo);
+                yaTieneBase = true;
+                return true;
+            }
+            // Si ya hay base pero no hay tapa, activamos la tapa
+            if (yaTieneBase && panArriba != null)
+            {
+                if (!panArriba.activeSelf) MostrarObjeto(panArriba);
+                return true;
+            }
+            
+            // Si ya tiene base y tapa, y tiran un tercer pan, lo destruimos para no ensuciar
+            return true; 
+        }
+
+        return false; // Si tiran algo que no es un ingrediente (ej. un cuchillo), no lo destruye
     }
 
     void OcultarObjeto(GameObject obj)
