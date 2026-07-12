@@ -249,7 +249,7 @@ void LateUpdate()
         transform.position += direccion.normalized * velocidadActual * Time.deltaTime; 
     }
 
-    // 🌟 REGLA DE ORO: DETECCIÓN DE CONTACTO DIRECTO CON EL SUELO DEL BARCO
+    // DETECCIÓN DE CONTACTO DIRECTO CON EL SUELO DEL BARCO
     // Esta función interna de Unity se dispara automáticamente cuando el CharacterController colisiona con algo
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
