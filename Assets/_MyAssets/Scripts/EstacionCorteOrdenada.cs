@@ -18,8 +18,12 @@ public class EstacionCorteOrdenada : MonoBehaviour
             Rigidbody rbPlato = platoActual.GetComponent<Rigidbody>();
             if (rbPlato != null) rbPlato.isKinematic = true;
 
+            // Lo hacemos hijo de la tabla directamente
             platoActual.transform.SetParent(transform);
-            platoActual.transform.localPosition = new Vector3(0, 0.1f, 0); // Ajusta la altura según tu mesa
+            
+            // 🌟 SOLUCIÓN DIRECTA: Lo centramos en X y Z, pero le restamos altura en Y.
+            // Si ves que se hunde demasiado o se queda un poco alto, cambia el -0.15f por -0.2f o -0.1f
+            platoActual.transform.localPosition = new Vector3(0, 0, 0); 
             platoActual.transform.localRotation = Quaternion.identity;
             return;
         }
@@ -28,16 +32,12 @@ public class EstacionCorteOrdenada : MonoBehaviour
         if (platoActual != null && controladorPlatoActual != null)
         {
             Rigidbody rbIng = other.GetComponent<Rigidbody>();
-            // Solo procesamos el ingrediente si está suelto (no en la mano del jugador)
             if (rbIng != null && !rbIng.isKinematic)
             {
-                // Le preguntamos al plato si este ingrediente es el que toca ahora mismo
                 bool aceptado = controladorPlatoActual.IntentarAñadirIngrediente(other.gameObject.name);
 
                 if (aceptado)
                 {
-                    // Si el plato lo acepta, borramos el objeto de la escena 
-                    // porque su versión visual ya se ha encendido dentro del plato
                     Destroy(other.gameObject);
                 }
             }
