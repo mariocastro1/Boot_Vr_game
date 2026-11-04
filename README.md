@@ -52,7 +52,7 @@ Designed with future **Virtual Reality (VR)** scaling in mind, the mechanics foc
 
 | Blender Ship Model | Kitchen Gameplay |
 | :---: | :---: |
-| ![Ship Model Placeholder](media/blender_model_screenshot.png) | ![Gameplay Placeholder](https://via.placeholder.com/400x250?text=Gameplay+Demo) |
+| ![Ship Model Placeholder](media/blender_model_screenshot.png) | ![Gameplay Placeholder](media/gameplay_gif.gif) |
 
 ---
 
