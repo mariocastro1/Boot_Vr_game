@@ -9,12 +9,12 @@ public class FlotacionSincronizada : MonoBehaviour
     [Header("Ajuste de Altura")]
     public float desfaseAltura = 0f;
 
-    // Guardaremos la rotación inicial de Blender aquí
+    
     private Quaternion rotacionInicial;
 
     void Start()
     {
-        // Al empezar el juego, memorizamos cómo estaba rotado el barco
+        
         rotacionInicial = transform.rotation;
     }
 
@@ -24,7 +24,7 @@ void Update()
 
         Vector3 posBarco = transform.position;
 
-        // 1. Cálculo de la altura de la ola
+        
         float distanciaCalculada = Vector3.Distance(new Vector3(posBarco.x, 0f, posBarco.z), scriptAgua.waveOriginPosition);
         distanciaCalculada = (distanciaCalculada % scriptAgua.waveLength) / scriptAgua.waveLength;
 

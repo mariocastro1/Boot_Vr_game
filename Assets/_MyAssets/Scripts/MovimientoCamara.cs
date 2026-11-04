@@ -21,7 +21,7 @@ public class MovimientoCamara : MonoBehaviour
     public float velocidadAgachado = 1.5f; 
 
     [Header("Sincronización con el Barco")]
-    public Transform objetoBarco; // Tu objeto base del barco ("Base_barco" o "boot")
+    public Transform objetoBarco; 
 
     private CharacterController controller;
     private float rotacionX = 0;
@@ -33,7 +33,7 @@ public class MovimientoCamara : MonoBehaviour
     private float alturaOriginalCamaraY = 0f;
     private bool estaAgachado = false;
 
-    // Variables internas para controlar si estamos sobre el barco
+    
     private bool sobreElBarco = false;
 
     void Start()
@@ -59,7 +59,7 @@ public class MovimientoCamara : MonoBehaviour
 
     void Update()
     {
-        // Alternar modo de cámara (Tecla º)
+        
         if (Keyboard.current != null && Keyboard.current.backslashKey.wasPressedThisFrame) 
         {
             modoActual = (modoActual == ModoCamara.Persona) ? ModoCamara.NoClip : ModoCamara.Persona; 
@@ -67,11 +67,11 @@ public class MovimientoCamara : MonoBehaviour
             {
                 velocidadVertical = 0f; 
                 RestaurarAlturaNormal();
-                transform.SetParent(null); // En NoClip nos desvinculamos de las coordenadas del barco
+                transform.SetParent(null); 
             }
         }
 
-        // Alternar pausa (Escape)
+        
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) 
         {
             juegoCongelado = !juegoCongelado; 
@@ -86,7 +86,7 @@ public class MovimientoCamara : MonoBehaviour
             juegoCongelado = false; 
         }
 
-        // PROCESAR MOVIMIENTO DEL JUGADOR
+        
         if (modoActual == ModoCamara.Persona) 
         {
             ManejarAgachado(); 
@@ -102,7 +102,7 @@ void LateUpdate()
     {
         if (juegoCongelado) return;
 
-        // ROTACIÓN DEL RATÓN CORREGIDA (Evita heredar los 90º del eje del barco)
+        
         if (Mouse.current != null && Cursor.lockState == CursorLockMode.Locked) 
         {
             Vector2 deltaRaton = Mouse.current.delta.ReadValue(); 
@@ -113,11 +113,11 @@ void LateUpdate()
             rotacionX -= ratonY; 
             rotacionX = Mathf.Clamp(rotacionX, -90f, 90f); 
 
-            // 🌟 LA CORRECCIÓN MAESTRA: Aplica la rotación absoluta en el mundo real.
-            // Esto ignora por completo si el objeto 'boot' o 'Base_barco' está girado en el editor.
+            
+            
             transform.rotation = Quaternion.Euler(0, rotacionY, 0);  
             
-            // Rotación vertical de la mirada (Cámara hija)
+            
             if (transform.childCount > 0) 
             {
                 transform.GetChild(0).localRotation = Quaternion.Euler(rotacionX, 0, 0);  
@@ -168,7 +168,7 @@ void LateUpdate()
     {
         Vector3 movimientoFinal = Vector3.zero; 
 
-        // Input de caminar (Movimiento relativo a la orientación actual)
+        
         Vector3 direccionInput = Vector3.zero; 
 
         if (Keyboard.current != null) 
@@ -194,14 +194,14 @@ void LateUpdate()
         direccionInput = direccionInput.normalized * velocidadActual * Time.deltaTime; 
         movimientoFinal += direccionInput; 
 
-        // GESTIÓN DE FÍSICAS VERTICALES, GRAVEDAD Y SALTO
+        
         if (controller.isGrounded) 
         {
-            velocidadVertical = -1.5f; // Fuerza constante hacia abajo para mantener el contacto firme con el suelo
+            velocidadVertical = -1.5f; 
 
             if (Keyboard.current != null && Keyboard.current.spaceKey.isPressed && !estaAgachado) 
             {
-                // Al saltar, nos desvinculamos inmediatamente del padre para volar libremente por el aire
+                
                 transform.SetParent(null);
                 velocidadVertical = fuerzaSalto; 
             }
@@ -210,7 +210,7 @@ void LateUpdate()
         {
             velocidadVertical -= gravedad * Time.deltaTime; 
             
-            // Si caemos o estamos en el aire por cualquier motivo, aseguramos que no tenemos padre
+            
             if (transform.parent != null)
             {
                 transform.SetParent(null);
@@ -219,7 +219,7 @@ void LateUpdate()
 
         movimientoFinal.y += velocidadVertical * Time.deltaTime; 
 
-        // Aplicamos nuestro movimiento e inputs nativos
+        
         controller.Move(movimientoFinal); 
     }
 
@@ -249,26 +249,26 @@ void LateUpdate()
         transform.position += direccion.normalized * velocidadActual * Time.deltaTime; 
     }
 
-    // DETECCIÓN DE CONTACTO DIRECTO CON EL SUELO DEL BARCO
-    // Esta función interna de Unity se dispara automáticamente cuando el CharacterController colisiona con algo
+    
+    
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        // Comprobamos si estamos en Modo Persona y si el objeto que pisamos está por debajo de nosotros (el suelo)
+        
         if (modoActual == ModoCamara.Persona && hit.normal.y > 0.6f)
         {
-            // Verificamos si lo que estamos pisando es el barco o cualquier parte dentro de su estructura física
+            
             if (hit.transform == objetoBarco || hit.transform.IsChildOf(objetoBarco))
             {
-                // Si aún no somos hijos, nos emparentamos directamente con el barco
+                
                 if (transform.parent != hit.transform)
                 {
-                    // Al poner el transform del golpe como padre, heredamos sus coordenadas globales de posición y rotación exactas
+                    
                     transform.SetParent(objetoBarco);
                 }
             }
             else
             {
-                // Si pisamos tierra firme u otro objeto fuera del barco, nos desvinculamos
+                
                 if (transform.parent != null)
                 {
                     transform.SetParent(null);

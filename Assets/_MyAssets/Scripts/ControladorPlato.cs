@@ -13,7 +13,7 @@ public class ControladorPlato : MonoBehaviour
 
     void Start()
     {
-        // Búsqueda automática dentro de tu objeto "completa"
+        
         Transform completa = transform.Find("completa");
 
         if (completa != null)
@@ -33,7 +33,7 @@ public class ControladorPlato : MonoBehaviour
             if (tPanArriba != null) panArriba = tPanArriba.gameObject;
         }
 
-        // Ocultamos todo al empezar el juego
+        
         OcultarObjeto(panBajo);
         OcultarObjeto(carne);
         OcultarObjeto(queso);
@@ -46,68 +46,68 @@ public class ControladorPlato : MonoBehaviour
     {
         string nombreMinusculas = nombreObjeto.ToLower();
 
-        // --- CARNE ---
+        
         if (nombreMinusculas.Contains("carne"))
         {
             if (carne != null && !carne.activeSelf)
             {
                 MostrarObjeto(carne);
             }
-            return true; // Se destruye el clon de la mesa siempre (esté puesto o no)
+            return true; 
         }
 
-        // --- QUESO ---
+        
         if (nombreMinusculas.Contains("queso"))
         {
             if (queso != null && !queso.activeSelf)
             {
                 MostrarObjeto(queso);
             }
-            return true; // Se destruye siempre
+            return true; 
         }
 
-        // --- TOMATE ---
+        
         if (nombreMinusculas.Contains("tomate"))
         {
             if (tomate != null && !tomate.activeSelf)
             {
                 MostrarObjeto(tomate);
             }
-            return true; // Se destruye siempre
+            return true; 
         }
 
-        // --- LECHUGA ---
+        
         if (nombreMinusculas.Contains("lechuga"))
         {
             if (lechuga != null && !lechuga.activeSelf)
             {
                 MostrarObjeto(lechuga);
             }
-            return true; // Se destruye siempre
+            return true; 
         }
 
-        // --- PANES (LÓGICA ESPECIAL) ---
+        
         if (nombreMinusculas.Contains("pan"))
         {
-            // Si no hay base, activamos la base
+            
             if (!yaTieneBase && panBajo != null)
             {
                 if (!panBajo.activeSelf) MostrarObjeto(panBajo);
                 yaTieneBase = true;
                 return true;
             }
-            // Si ya hay base pero no hay tapa, activamos la tapa
+            
             if (yaTieneBase && panArriba != null)
             {
                 if (!panArriba.activeSelf) MostrarObjeto(panArriba);
                 return true;
             }
             
-            // Si ya tiene base y tapa, y tiran un tercer pan, lo destruimos para no ensuciar
+            
             return true; 
         }
 
-        return false; // Si tiran algo que no es un ingrediente (ej. un cuchillo), no lo destruye
+        return false; 
     }
 
     void OcultarObjeto(GameObject obj)
