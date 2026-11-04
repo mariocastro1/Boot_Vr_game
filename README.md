@@ -2,7 +2,8 @@
 
 A 3D simulation and game prototype built using **Unity** and **Blender** as part of the *Immersive Media* course at **Humboldt University of Berlin**.
 
-![Project Banner or Main Screenshot](https://via.placeholder.com/800x400?text=Boot+VR+Game+Prototype)
+![VR Kitchen Management Gameplay](media/boot_gif.gif)
+ 
 
 ---
 
