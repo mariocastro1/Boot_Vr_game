@@ -31,7 +31,6 @@ Designed with future **Virtual Reality (VR)** scaling in mind, the mechanics foc
 
 ### Blender Modeling
 * **Boat/Ship Model:** Modeled entirely by me in Blender as part of my introduction to 3D modeling. I applied core Blender techniques (extrusion, loop cuts, UV mapping, basic shading) guided by fundamental 3D design tutorials.
-*(Add screenshot of your ship model here)*
 
 ### Unity Environment & Assets
 * **Environment & Props:** The surrounding environment, kitchen props, and extra textures were integrated using curated third-party asset packs to focus primary scripting efforts on mechanics and time management logic.
@@ -53,7 +52,7 @@ Designed with future **Virtual Reality (VR)** scaling in mind, the mechanics foc
 
 | Blender Ship Model | Kitchen Gameplay |
 | :---: | :---: |
-| ![Ship Model Placeholder](https://via.placeholder.com/400x250?text=Blender+Ship+Model) | ![Gameplay Placeholder](https://via.placeholder.com/400x250?text=Gameplay+Demo) |
+| ![Ship Model Placeholder](media/blender_model_screenshot.png) | ![Gameplay Placeholder](https://via.placeholder.com/400x250?text=Gameplay+Demo) |
 
 ---
 
